@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Belajar Hiragana & Katakana — FlashHaka App</title>
+    <style>
+      /* ===== Minimal, mobile-first styles ===== */
+      :root {
+        --bg: #f7f8fb;
+        --card: #fff;
+        --muted: #6b7280;
+        --accent: #2b6cb0;
+        --success: #16a34a;
+        --glass: rgba(0, 0, 0, 0.04);
+        --focus: 3px solid rgba(59, 130, 246, 0.25);
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: Inter, Segoe UI, system-ui, Arial;
+        line-height: 1.35;
+        margin: 0;
+        background: var(--bg);
+        color: #0f172a;
+        padding: 16px;
+      }
+      header {
+        max-width: 1200px;
+        margin: 0 auto 14px;
+      }
+      h1 {
+        font-size: 1.25rem;
+        margin: 0 0 6px;
+        color: var(--accent);
+      }
+      p.lead {
+        margin: 0 0 12px;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      /* Controls */
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        max-width: 1200px;
+        margin: 0 auto 14px;
+      }
+      .toggle-group {
+        display: flex;
+        background: var(--card);
+        padding: 4px;
+        border-radius: 999px;
+        box-shadow: 0 8px 18px var(--glass);
+      }
+      .toggle-group button {
+        border: 0;
+        background: transparent;
+        padding: 8px 14px;
+        border-radius: 999px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .toggle-group button[aria-pressed="true"] {
+        background: var(--accent);
+        color: #fff;
+      }
+
+      .btn {
+        border: 0;
+        background: var(--card);
+        padding: 10px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 600;
+        box-shadow: 0 6px 12px var(--glass);
+      }
+      .btn.primary {
+        background: var(--accent);
+        color: #fff;
+      }
+      .btn.ghost {
+        background: transparent;
+      }
+      .btn.small {
+        padding: 8px 10px;
+        font-size: 0.9rem;
+      }
+
+      .filter {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--card);
+        padding: 8px;
+        border-radius: 10px;
+      }
+      .switch {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      /* Progress */
+      .progress-wrap {
+        max-width: 1200px;
+        margin: 0 auto 18px;
+        background: var(--card);
+        padding: 12px;
+        border-radius: 12px;
+        box-shadow: 0 8px 18px var(--glass);
+      }
+      .progress-line {
+        height: 12px;
+        background: var(--glass);
+        border-radius: 999px;
+        overflow: hidden;
+      }
+      .progress-fill {
+        height: 100%;
+        width: 0;
+        background: linear-gradient(90deg, var(--accent), var(--success));
+        transition: width 0.5s;
+      }
+      .progress-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 8px;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
+      /* Grid */
+      .cards-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        perspective: 800px;
+      }
+      @media (min-width: 560px) {
+        .cards-container {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+      @media (min-width: 900px) {
+        .cards-container {
+          grid-template-columns: repeat(4, 1fr);
+          gap: 16px;
+        }
+      }
+      @media (min-width: 1200px) {
+        .cards-container {
+          grid-template-columns: repeat(6, 1fr);
+        }
+      }
+
+      .card {
+        position: relative;
+        height: 160px;
+        border-radius: 12px;
+        cursor: pointer;
+        outline: none;
+      }
+      .card .inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transform-style: preserve-3d;
+        transition: transform 0.6s;
+      }
+      .card.flipped .inner {
+        transform: rotateY(180deg);
+      }
+      .face {
+        position: absolute;
+        inset: 0;
+        border-radius: 12px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        backface-visibility: hidden;
+        box-shadow: 0 6px 14px var(--glass);
+        background: var(--card);
+        border: 1px solid rgba(15, 23, 42, 0.04);
+      }
+      .front {
+        font-size: 3.25rem;
+        font-weight: 700;
+        color: #0f172a;
+      }
+      .back {
+        transform: rotateY(180deg);
+        font-size: 1rem;
+        color: #111;
+      }
+      .romaji {
+        margin-top: 8px;
+        font-weight: 700;
+        color: var(--accent);
+      }
+      .example {
+        font-size: 0.95rem;
+        color: var(--muted);
+        text-align: center;
+        margin-top: 6px;
+      }
+
+      .mastered-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: var(--success);
+        color: #fff;
+        padding: 6px 8px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+      }
+
+      /* single view adjustments */
+      .single-view .cards-container {
+        grid-template-columns: 1fr;
+        max-width: 560px;
+      }
+      .single-nav {
+        max-width: 560px;
+        margin: 12px auto;
+        display: flex;
+        gap: 8px;
+        justify-content: space-between;
+      }
+
+      /* focus & accessibility */
+      button:focus,
+      .card:focus {
+        box-shadow: var(--focus);
+        border-radius: 8px;
+      }
+      .sr-only {
+        position: absolute;
+        height: 1px;
+        width: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      /* small interactions */
+      .controls .spacer {
+        flex: 1;
+      }
+      .fade {
+        transition: opacity 0.3s, transform 0.3s;
+      }
+
+      /* dark mode */
+      body.dark {
+        background: #0b1220;
+        color: #e6eef8;
+      }
+      body.dark .card .face {
+        background: #0f1724;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+      }
+      body.dark .toggle-group button[aria-pressed="true"] {
+        background: #1f6feb;
+      }
+      body.dark .progress-wrap {
+        background: #071022;
+      }
+      body.dark .filter {
+        background: #071022;
+      }
+
+      /* subtle entrance */
+      .card {
+        transform: translateY(6px);
+        opacity: 0;
+        animation: enter 0.35s ease forwards;
+      }
+      @keyframes enter {
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>📚 Belajar Hiragana & Katakana</h1>
+      <p class="lead">
+        FlashCard Hiragana & Katakana — klik kartu untuk membalik, gunakan
+        tombol untuk kontrol.
+      </p>
+    </header>
+
+    <!-- Controls -->
+    <div class="controls" role="toolbar" aria-label="Controls">
+      <div class="toggle-group" role="group" aria-label="Pilih tipe kana">
+        <button class="toggle-btn" data-type="hiragana" aria-pressed="true">
+          Hiragana
+        </button>
+        <button class="toggle-btn" data-type="katakana" aria-pressed="false">
+          Katakana
+        </button>
+      </div>
+
+      <div class="switch">
+        <button id="gridBtn" class="btn small primary" aria-pressed="true">
+          🔲 Grid
+        </button>
+        <button id="singleBtn" class="btn small" aria-pressed="false">
+          🎴 Single
+        </button>
+      </div>
+
+      <button id="shuffleBtn" class="btn small">🔀 Shuffle</button>
+      <button id="resetBtn" class="btn small">↺ Reset</button>
+
+      <div class="filter" title="Tampilkan hanya yang belum hafal">
+        <input
+          id="filterUnread"
+          type="checkbox"
+          aria-label="Tampilkan hanya yang belum hafal"
+        />
+        <label for="filterUnread">Belum Hafal Saja</label>
+      </div>
+
+      <div class="spacer" aria-hidden="true"></div>
+
+      <button id="darkToggle" class="btn small ghost" aria-pressed="false">
+        🌙 Dark
+      </button>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-wrap" aria-live="polite">
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        "
+      >
+        <strong id="progressText">0 / 46 telah dikuasai</strong>
+        <small id="progressPercent">0%</small>
+      </div>
+      <div
+        class="progress-line"
+        role="progressbar"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="0"
+        style="margin-top: 8px"
+      >
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+
+    <!-- Single view nav -->
+    <div class="single-nav" id="singleNav" style="display: none">
+      <button id="prevBtn" class="btn">← Prev</button>
+      <button id="markBtn" class="btn primary">✓ Hafal</button>
+      <button id="nextBtn" class="btn">Next →</button>
+    </div>
+
+    <!-- Cards container -->
+    <main>
+      <section
+        id="cardsList"
+        class="cards-container"
+        role="list"
+        aria-label="Daftar kartu kana"
+      ></section>
+    </main>
+
+    <script>
+      /* ===== Example data: 46 hiragana + 46 katakana ===== */
+      // Minimal 46 each; can be extended. Format: {kana, romaji, exampleKana, exampleRomaji, meaning}
+      const HIRAGANA = [
+        {
+          kana: "あ",
+          romaji: "a",
+          exampleKana: "あさ",
+          exampleRomaji: "asa",
+          meaning: "pagi",
+        },
+        {
+          kana: "い",
+          romaji: "i",
+          exampleKana: "いぬ",
+          exampleRomaji: "inu",
+          meaning: "anjing",
+        },
+        {
+          kana: "う",
+          romaji: "u",
+          exampleKana: "うみ",
+          exampleRomaji: "umi",
+          meaning: "laut",
+        },
+        {
+          kana: "え",
+          romaji: "e",
+          exampleKana: "えき",
+          exampleRomaji: "eki",
+          meaning: "stasiun",
+        },
+        {
+          kana: "お",
+          romaji: "o",
+          exampleKana: "おとこ",
+          exampleRomaji: "otoko",
+          meaning: "pria",
+        },
+        {
+          kana: "か",
+          romaji: "ka",
+          exampleKana: "かお",
+          exampleRomaji: "kao",
+          meaning: "wajah",
+        },
+        {
+          kana: "き",
+          romaji: "ki",
+          exampleKana: "きのう",
+          exampleRomaji: "kinou",
+          meaning: "kemarin",
+        },
+        {
+          kana: "く",
+          romaji: "ku",
+          exampleKana: "くつ",
+          exampleRomaji: "kutsu",
+          meaning: "sepatu",
+        },
+        {
+          kana: "け",
+          romaji: "ke",
+          exampleKana: "けさ",
+          exampleRomaji: "kesa",
+          meaning: "tadi pagi",
+        },
+        {
+          kana: "こ",
+          romaji: "ko",
+          exampleKana: "ここ",
+          exampleRomaji: "koko",
+          meaning: "sini",
+        },
+        {
+          kana: "さ",
+          romaji: "sa",
+          exampleKana: "さかな",
+          exampleRomaji: "sakana",
+          meaning: "ikan",
+        },
+        {
+          kana: "し",
+          romaji: "shi",
+          exampleKana: "しお",
+          exampleRomaji: "shio",
+          meaning: "garam",
+        },
+        {
+          kana: "す",
+          romaji: "su",
+          exampleKana: "すし",
+          exampleRomaji: "sushi",
+          meaning: "sushi",
+        },
+        {
+          kana: "せ",
+          romaji: "se",
+          exampleKana: "せかい",
+          exampleRomaji: "sekai",
+          meaning: "dunia",
+        },
+        {
+          kana: "そ",
+          romaji: "so",
+          exampleKana: "そら",
+          exampleRomaji: "sora",
+          meaning: "langit",
+        },
+        {
+          kana: "た",
+          romaji: "ta",
+          exampleKana: "たべる",
+          exampleRomaji: "taberu",
+          meaning: "makan",
+        },
+        {
+          kana: "ち",
+          romaji: "chi",
+          exampleKana: "ちず",
+          exampleRomaji: "chizu",
+          meaning: "peta",
+        },
+        {
+          kana: "つ",
+          romaji: "tsu",
+          exampleKana: "つき",
+          exampleRomaji: "tsuki",
+          meaning: "bulan",
+        },
+        {
+          kana: "て",
+          romaji: "te",
+          exampleKana: "てがみ",
+          exampleRomaji: "tegami",
+          meaning: "surat",
+        },
+        {
+          kana: "と",
+          romaji: "to",
+          exampleKana: "とけい",
+          exampleRomaji: "tokei",
+          meaning: "jam",
+        },
+        {
+          kana: "な",
+          romaji: "na",
+          exampleKana: "なまえ",
+          exampleRomaji: "namae",
+          meaning: "nama",
+        },
+        {
+          kana: "に",
+          romaji: "ni",
+          exampleKana: "にほん",
+          exampleRomaji: "nihon",
+          meaning: "Jepang",
+        },
+        {
+          kana: "ぬ",
+          romaji: "nu",
+          exampleKana: "ぬの",
+          exampleRomaji: "nuno",
+          meaning: "kain",
+        },
+        {
+          kana: "ね",
+          romaji: "ne",
+          exampleKana: "ねこ",
+          exampleRomaji: "neko",
+          meaning: "kucing",
+        },
+        {
+          kana: "の",
+          romaji: "no",
+          exampleKana: "のむ",
+          exampleRomaji: "nomu",
+          meaning: "minum",
+        },
+        {
+          kana: "は",
+          romaji: "ha",
+          exampleKana: "はな",
+          exampleRomaji: "hana",
+          meaning: "bunga",
+        },
+        {
+          kana: "ひ",
+          romaji: "hi",
+          exampleKana: "ひと",
+          exampleRomaji: "hito",
+          meaning: "orang",
+        },
+        {
+          kana: "ふ",
+          romaji: "fu",
+          exampleKana: "ふゆ",
+          exampleRomaji: "fuyu",
+          meaning: "musim dingin",
+        },
+        {
+          kana: "へ",
+          romaji: "he",
+          exampleKana: "へや",
+          exampleRomaji: "heya",
+          meaning: "kamar",
+        },
+        {
+          kana: "ほ",
+          romaji: "ho",
+          exampleKana: "ほん",
+          exampleRomaji: "hon",
+          meaning: "buku",
+        },
+        {
+          kana: "ま",
+          romaji: "ma",
+          exampleKana: "まち",
+          exampleRomaji: "machi",
+          meaning: "kota",
+        },
+        {
+          kana: "み",
+          romaji: "mi",
+          exampleKana: "みず",
+          exampleRomaji: "mizu",
+          meaning: "air",
+        },
+        {
+          kana: "む",
+          romaji: "mu",
+          exampleKana: "むし",
+          exampleRomaji: "mushi",
+          meaning: "serangga",
+        },
+        {
+          kana: "め",
+          romaji: "me",
+          exampleKana: "めがね",
+          exampleRomaji: "megane",
+          meaning: "kacamata",
+        },
+        {
+          kana: "も",
+          romaji: "mo",
+          exampleKana: "もの",
+          exampleRomaji: "mono",
+          meaning: "barang",
+        },
+        {
+          kana: "や",
+          romaji: "ya",
+          exampleKana: "やま",
+          exampleRomaji: "yama",
+          meaning: "gunung",
+        },
+        {
+          kana: "ゆ",
+          romaji: "yu",
+          exampleKana: "ゆき",
+          exampleRomaji: "yuki",
+          meaning: "salju",
+        },
+        {
+          kana: "よ",
+          romaji: "yo",
+          exampleKana: "よる",
+          exampleRomaji: "yoru",
+          meaning: "malam",
+        },
+        {
+          kana: "ら",
+          romaji: "ra",
+          exampleKana: "らいねん",
+          exampleRomaji: "rainen",
+          meaning: "tahun depan",
+        },
+        {
+          kana: "り",
+          romaji: "ri",
+          exampleKana: "りんご",
+          exampleRomaji: "ringo",
+          meaning: "apel",
+        },
+        {
+          kana: "る",
+          romaji: "ru",
+          exampleKana: "るす",
+          exampleRomaji: "rusu",
+          meaning: "tidak di rumah",
+        },
+        {
+          kana: "れ",
+          romaji: "re",
+          exampleKana: "れきし",
+          exampleRomaji: "rekishi",
+          meaning: "sejarah",
+        },
+        {
+          kana: "ろ",
+          romaji: "ro",
+          exampleKana: "ろく",
+          exampleRomaji: "roku",
+          meaning: "enam",
+        },
+        {
+          kana: "わ",
+          romaji: "wa",
+          exampleKana: "わたし",
+          exampleRomaji: "watashi",
+          meaning: "saya",
+        },
+        {
+          kana: "を",
+          romaji: "wo",
+          exampleKana: "ほんを",
+          exampleRomaji: "hon wo",
+          meaning: "buku (objek)",
+        },
+        {
+          kana: "ん",
+          romaji: "n",
+          exampleKana: "にほん",
+          exampleRomaji: "nihon",
+          meaning: "Jepang",
+        },
+      ];
+
+      const KATAKANA = [
+        {
+          kana: "ア",
+          romaji: "a",
+          exampleKana: "アメリカ",
+          exampleRomaji: "amerika",
+          meaning: "Amerika",
+        },
+        {
+          kana: "イ",
+          romaji: "i",
+          exampleKana: "イタリア",
+          exampleRomaji: "itaria",
+          meaning: "Italia",
+        },
+        {
+          kana: "ウ",
+          romaji: "u",
+          exampleKana: "ウイスキー",
+          exampleRomaji: "uisukii",
+          meaning: "wiski",
+        },
+        {
+          kana: "エ",
+          romaji: "e",
+          exampleKana: "エアコン",
+          exampleRomaji: "eakon",
+          meaning: "AC",
+        },
+        {
+          kana: "オ",
+          romaji: "o",
+          exampleKana: "オレンジ",
+          exampleRomaji: "orenji",
+          meaning: "jeruk",
+        },
+        {
+          kana: "カ",
+          romaji: "ka",
+          exampleKana: "カメラ",
+          exampleRomaji: "kamera",
+          meaning: "kamera",
+        },
+        {
+          kana: "キ",
+          romaji: "ki",
+          exampleKana: "キロ",
+          exampleRomaji: "kiro",
+          meaning: "kilo",
+        },
+        {
+          kana: "ク",
+          romaji: "ku",
+          exampleKana: "クラス",
+          exampleRomaji: "kurasu",
+          meaning: "kelas",
+        },
+        {
+          kana: "ケ",
+          romaji: "ke",
+          exampleKana: "ケーキ",
+          exampleRomaji: "keeki",
+          meaning: "kue",
+        },
+        {
+          kana: "コ",
+          romaji: "ko",
+          exampleKana: "コーヒー",
+          exampleRomaji: "koohii",
+          meaning: "kopi",
+        },
+        {
+          kana: "サ",
+          romaji: "sa",
+          exampleKana: "サラダ",
+          exampleRomaji: "sarada",
+          meaning: "salad",
+        },
+        {
+          kana: "シ",
+          romaji: "shi",
+          exampleKana: "シャツ",
+          exampleRomaji: "shatsu",
+          meaning: "kemeja",
+        },
+        {
+          kana: "ス",
+          romaji: "su",
+          exampleKana: "スーパー",
+          exampleRomaji: "suupaa",
+          meaning: "supermarket",
+        },
+        {
+          kana: "セ",
+          romaji: "se",
+          exampleKana: "セーター",
+          exampleRomaji: "seetaa",
+          meaning: "sweater",
+        },
+        {
+          kana: "ソ",
+          romaji: "so",
+          exampleKana: "ソース",
+          exampleRomaji: "soosu",
+          meaning: "saus",
+        },
+        {
+          kana: "タ",
+          romaji: "ta",
+          exampleKana: "タクシー",
+          exampleRomaji: "takushii",
+          meaning: "taksi",
+        },
+        {
+          kana: "チ",
+          romaji: "chi",
+          exampleKana: "チーズ",
+          exampleRomaji: "chiizu",
+          meaning: "keju",
+        },
+        {
+          kana: "ツ",
+          romaji: "tsu",
+          exampleKana: "ツアー",
+          exampleRomaji: "tsuaa",
+          meaning: "tur",
+        },
+        {
+          kana: "テ",
+          romaji: "te",
+          exampleKana: "テレビ",
+          exampleRomaji: "terebi",
+          meaning: "TV",
+        },
+        {
+          kana: "ト",
+          romaji: "to",
+          exampleKana: "トイレ",
+          exampleRomaji: "toire",
+          meaning: "toilet",
+        },
+        {
+          kana: "ナ",
+          romaji: "na",
+          exampleKana: "ナイフ",
+          exampleRomaji: "naifu",
+          meaning: "pisau",
+        },
+        {
+          kana: "ニ",
+          romaji: "ni",
+          exampleKana: "ニュース",
+          exampleRomaji: "nyuusu",
+          meaning: "berita",
+        },
+        {
+          kana: "ヌ",
+          romaji: "nu",
+          exampleKana: "ヌードル",
+          exampleRomaji: "nuudoru",
+          meaning: "mie",
+        },
+        {
+          kana: "ネ",
+          romaji: "ne",
+          exampleKana: "ネクタイ",
+          exampleRomaji: "nekutai",
+          meaning: "dasi",
+        },
+        {
+          kana: "ノ",
+          romaji: "no",
+          exampleKana: "ノート",
+          exampleRomaji: "nooto",
+          meaning: "buku catatan",
+        },
+        {
+          kana: "ハ",
+          romaji: "ha",
+          exampleKana: "ハンバーガー",
+          exampleRomaji: "hanbagaa",
+          meaning: "hamburger",
+        },
+        {
+          kana: "ヒ",
+          romaji: "hi",
+          exampleKana: "ヒーター",
+          exampleRomaji: "hiitaa",
+          meaning: "pemanas",
+        },
+        {
+          kana: "フ",
+          romaji: "fu",
+          exampleKana: "フォーク",
+          exampleRomaji: "fooku",
+          meaning: "garpu",
+        },
+        {
+          kana: "ヘ",
+          romaji: "he",
+          exampleKana: "ヘリコプター",
+          exampleRomaji: "herikoputaa",
+          meaning: "helikopter",
+        },
+        {
+          kana: "ホ",
+          romaji: "ho",
+          exampleKana: "ホテル",
+          exampleRomaji: "hoteru",
+          meaning: "hotel",
+        },
+        {
+          kana: "マ",
+          romaji: "ma",
+          exampleKana: "マンガ",
+          exampleRomaji: "manga",
+          meaning: "manga",
+        },
+        {
+          kana: "ミ",
+          romaji: "mi",
+          exampleKana: "ミルク",
+          exampleRomaji: "miruku",
+          meaning: "susu",
+        },
+        {
+          kana: "ム",
+          romaji: "mu",
+          exampleKana: "ムービー",
+          exampleRomaji: "muubii",
+          meaning: "film",
+        },
+        {
+          kana: "メ",
+          romaji: "me",
+          exampleKana: "メニュー",
+          exampleRomaji: "menyuu",
+          meaning: "menu",
+        },
+        {
+          kana: "モ",
+          romaji: "mo",
+          exampleKana: "モデル",
+          exampleRomaji: "moderu",
+          meaning: "model",
+        },
+        {
+          kana: "ヤ",
+          romaji: "ya",
+          exampleKana: "ヤング",
+          exampleRomaji: "yangu",
+          meaning: "muda",
+        },
+        {
+          kana: "ユ",
+          romaji: "yu",
+          exampleKana: "ユーザー",
+          exampleRomaji: "yuuzaa",
+          meaning: "pengguna",
+        },
+        {
+          kana: "ヨ",
+          romaji: "yo",
+          exampleKana: "ヨーグルト",
+          exampleRomaji: "yooguruto",
+          meaning: "yogurt",
+        },
+        {
+          kana: "ラ",
+          romaji: "ra",
+          exampleKana: "ラジオ",
+          exampleRomaji: "rajio",
+          meaning: "radio",
+        },
+        {
+          kana: "リ",
+          romaji: "ri",
+          exampleKana: "リボン",
+          exampleRomaji: "ribon",
+          meaning: "pita",
+        },
+        {
+          kana: "ル",
+          romaji: "ru",
+          exampleKana: "ルール",
+          exampleRomaji: "ruuru",
+          meaning: "aturan",
+        },
+        {
+          kana: "レ",
+          romaji: "re",
+          exampleKana: "レストラン",
+          exampleRomaji: "resutoran",
+          meaning: "restoran",
+        },
+        {
+          kana: "ロ",
+          romaji: "ro",
+          exampleKana: "ロケット",
+          exampleRomaji: "roketto",
+          meaning: "roket",
+        },
+        {
+          kana: "ワ",
+          romaji: "wa",
+          exampleKana: "ワイン",
+          exampleRomaji: "wain",
+          meaning: "anggur",
+        },
+        {
+          kana: "ヲ",
+          romaji: "wo",
+          exampleKana: "ヲタク",
+          exampleRomaji: "wotaku",
+          meaning: "otaku",
+        },
+        {
+          kana: "ン",
+          romaji: "n",
+          exampleKana: "ラーメン",
+          exampleRomaji: "raamen",
+          meaning: "ramen",
+        },
+      ];
+
+      /* ===== App State ===== */
+      let state = {
+        type: "hiragana", // 'hiragana' | 'katakana'
+        data: HIRAGANA.slice(),
+        original: HIRAGANA.slice(),
+        mastered: new Set(), // store kana values
+        singleView: false,
+        focusedIndex: 0,
+        filterUnread: false,
+      };
+
+      /* ===== Helpers ===== */
+      function shuffleArray(arr) {
+        // Fisher-Yates shuffle
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      /* ===== DOM refs ===== */
+      const cardsList = document.getElementById("cardsList");
+      const toggleBtns = document.querySelectorAll(".toggle-group button");
+      const gridBtn = document.getElementById("gridBtn");
+      const singleBtn = document.getElementById("singleBtn");
+      const shuffleBtn = document.getElementById("shuffleBtn");
+      const resetBtn = document.getElementById("resetBtn");
+      const filterUnread = document.getElementById("filterUnread");
+      const progressText = document.getElementById("progressText");
+      const progressFill = document.getElementById("progressFill");
+      const progressPercent = document.getElementById("progressPercent");
+      const singleNav = document.getElementById("singleNav");
+      const prevBtn = document.getElementById("prevBtn");
+      const nextBtn = document.getElementById("nextBtn");
+      const markBtn = document.getElementById("markBtn");
+      const darkToggle = document.getElementById("darkToggle");
+
+      /* ===== Render functions ===== */
+      function renderCards() {
+        // clear
+        cardsList.innerHTML = "";
+        // choose data source
+        let data = state.data.slice();
+        if (state.filterUnread) {
+          data = data.filter((item) => !state.mastered.has(item.kana));
+        }
+        // create DOM for each card
+        data.forEach((item, idx) => {
+          const card = document.createElement("div");
+          card.className = "card fade";
+          card.tabIndex = 0; // make focusable
+          card.setAttribute("role", "listitem");
+          card.setAttribute(
+            "aria-label",
+            `${item.kana} card. Romaji ${item.romaji}`
+          );
+          card.dataset.index = idx;
+
+          // inner flipping container
+          const inner = document.createElement("div");
+          inner.className = "inner";
+
+          const front = document.createElement("div");
+          front.className = "face front";
+          front.innerHTML = `<div class="front">${item.kana}</div>`;
+
+          const back = document.createElement("div");
+          back.className = "face back";
+          back.innerHTML = `
+          <div class="romaji">${item.romaji}</div>
+          <div class="example">${item.exampleKana} — <em>${item.exampleRomaji}</em></div>
+          <div class="meaning">${item.meaning}</div>
+        `;
+
+          inner.appendChild(front);
+          inner.appendChild(back);
+          card.appendChild(inner);
+
+          // mastered badge
+          if (state.mastered.has(item.kana)) {
+            const badge = document.createElement("div");
+            badge.className = "mastered-badge";
+            badge.textContent = "Hafal";
+            card.appendChild(badge);
+          }
+
+          // handlers: click to flip
+          card.addEventListener("click", (e) => {
+            // prevent toggling when clicking buttons inside later
+            toggleFlip(card);
+          });
+
+          // keyboard: Enter to flip
+          card.addEventListener("keydown", (ev) => {
+            if (ev.key === "Enter") {
+              ev.preventDefault();
+              toggleFlip(card);
+            }
+            // allow single-view navigation with arrows
+            if (state.singleView) {
+              if (ev.key === "ArrowLeft") prevCard();
+              if (ev.key === "ArrowRight") nextCard();
+            }
+          });
+
+          cardsList.appendChild(card);
+        });
+
+        updateProgress();
+
+        // if in single view, ensure navigation visible and show only focused card
+        if (state.singleView) {
+          document.body.classList.add("single-view");
+          singleNav.style.display = "";
+          focusSingleCard();
+        } else {
+          document.body.classList.remove("single-view");
+          singleNav.style.display = "none";
+        }
+      }
+
+      function toggleFlip(card) {
+        card.classList.toggle("flipped");
+      }
+
+      function updateProgress() {
+        const total = state.original.length;
+        const mastered = state.mastered.size;
+        const percent = Math.round((mastered / total) * 100);
+        progressText.textContent = `${mastered} / ${total} telah dikuasai`;
+        progressPercent.textContent = `${percent}%`;
+        progressFill.style.width = `${percent}%`;
+        // update aria
+        const bar = document.querySelector(".progress-line");
+        bar.setAttribute("aria-valuenow", percent);
+      }
+
+      /* ===== Controls behaviour ===== */
+      // Kana toggle
+      toggleBtns.forEach((btn) =>
+        btn.addEventListener("click", () => {
+          toggleBtns.forEach((b) => b.setAttribute("aria-pressed", "false"));
+          btn.setAttribute("aria-pressed", "true");
+          const type = btn.dataset.type;
+          if (type === state.type) return;
+          state.type = type;
+          state.mastered = new Set(); // reset mastery when switching
+          if (type === "hiragana") {
+            state.data = HIRAGANA.slice();
+            state.original = HIRAGANA.slice();
+          } else {
+            state.data = KATAKANA.slice();
+            state.original = KATAKANA.slice();
+          }
+          state.focusedIndex = 0;
+          renderCards();
+        })
+      );
+
+      // Grid / Single toggle
+      gridBtn.addEventListener("click", () => {
+        state.singleView = false;
+        gridBtn.classList.add("primary");
+        singleBtn.classList.remove("primary");
+        renderCards();
+      });
+      singleBtn.addEventListener("click", () => {
+        state.singleView = true;
+        singleBtn.classList.add("primary");
+        gridBtn.classList.remove("primary");
+        renderCards();
+      });
+
+      // Shuffle
+      shuffleBtn.addEventListener("click", () => {
+        state.data = shuffleArray(state.data);
+        renderCards();
+        // small animation: shift
+        cardsList.style.transform = "translateY(6px)";
+        setTimeout(() => (cardsList.style.transform = "none"), 180);
+      });
+
+      // Reset
+      resetBtn.addEventListener("click", () => {
+        state.data = state.original.slice();
+        state.mastered = new Set();
+        state.filterUnread = false;
+        filterUnread.checked = false;
+        renderCards();
+      });
+
+      // Filter unread
+      filterUnread.addEventListener("change", (e) => {
+        state.filterUnread = e.target.checked;
+        renderCards();
+      });
+
+      // Dark mode
+      darkToggle.addEventListener("click", () => {
+        const isDark = document.body.classList.toggle("dark");
+        darkToggle.setAttribute("aria-pressed", String(isDark));
+      });
+
+      /* ===== Single navigation and marking ===== */
+      function focusSingleCard() {
+        // show only the card at focusedIndex (if filter applied, map index accordingly)
+        const cards = Array.from(cardsList.children);
+        if (cards.length === 0) return;
+        // clamp
+        if (state.focusedIndex < 0) state.focusedIndex = 0;
+        if (state.focusedIndex >= cards.length)
+          state.focusedIndex = cards.length - 1;
+        cards.forEach((c, i) => {
+          c.style.display = i === state.focusedIndex ? "" : "none";
+        });
+        // focus the visible card for keyboard actions
+        const visible = cards[state.focusedIndex];
+        if (visible) visible.focus();
+      }
+
+      prevBtn.addEventListener("click", prevCard);
+      nextBtn.addEventListener("click", nextCard);
+
+      function prevCard() {
+        state.focusedIndex = Math.max(0, state.focusedIndex - 1);
+        focusSingleCard();
+      }
+      function nextCard() {
+        const cards = Array.from(cardsList.children);
+        state.focusedIndex = Math.min(cards.length - 1, state.focusedIndex + 1);
+        focusSingleCard();
+      }
+
+      // Mark as mastered
+      markBtn.addEventListener("click", () => {
+        const cards = Array.from(cardsList.children);
+        if (cards.length === 0) return;
+        const current = cards[state.focusedIndex];
+        if (!current) return;
+        const idx = Number(current.dataset.index);
+        const item = state.filterUnread
+          ? state.data.filter((it) => !state.mastered.has(it.kana))[idx]
+          : state.data[idx];
+        if (!item) return;
+        state.mastered.add(item.kana);
+        // keep a small visual update: add badge
+        renderCards();
+      });
+
+      /* ===== Init ===== */
+      // set initial data
+      state.data = HIRAGANA.slice();
+      state.original = HIRAGANA.slice();
+      renderCards();
+
+      /* ===== Additional accessibility global handlers ===== */
+      // allow global Enter to activate focused button
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          const el = document.activeElement;
+          if (el && el.tagName === "BUTTON") el.click();
+        }
+        // single view left/right navigation
+        if (state.singleView) {
+          if (e.key === "ArrowLeft") prevCard();
+          if (e.key === "ArrowRight") nextCard();
+        }
+      });
+
+      /* ===== Optional: audio playback (requires assets/audio/{kana}.mp3) ===== */
+      async function playAudioFor(kana) {
+        try {
+          const audioPath = `assets/audio/${kana}.mp3`;
+          const a = new Audio(audioPath);
+          await a.play();
+        } catch (err) {
+          // fail silently when audio missing
+          // console.log('Audio not found for', kana);
+        }
+      }
+
+      // If you want to add a small audio button per card, you can enhance renderCards to include a button
+
+      /* ===== Notes: persistent state & future improvements ===== */
+      // - Could add localStorage persistence for mastered set and dark mode
+      // - Could add audio assets and play on card flip
+      // - Could add spaced repetition scheduling
+    </script>
+  </body>
+</html>
